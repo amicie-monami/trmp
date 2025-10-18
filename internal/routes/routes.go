@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"database/sql"
+
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r gin.IRouter) {
+func SetupRoutes(r gin.IRouter, db *sql.DB) {
 	r.Use()
 
 	api := r.Group("/api")
