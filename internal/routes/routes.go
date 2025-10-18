@@ -11,7 +11,7 @@ func SetupRoutes(r gin.IRouter) {
 	{
 		api.GET("/writers", writersHandler())
 		api.GET("/writers/:id", writersBiographyHandler())
-		// api.GET("/articles")
+		api.GET("/articles", articlesHandler())
 		// api.GET("/search")
 		// api.GET("favorites")
 		// api.GET("/me")
