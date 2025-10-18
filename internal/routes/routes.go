@@ -10,9 +10,10 @@ func SetupRoutes(r gin.IRouter) {
 	api := r.Group("/api")
 	{
 		api.GET("/writers", writersHandler())
-		api.GET("/articles")
-		api.GET("/search")
-		api.GET("favorites")
-		api.GET("/me")
+		api.GET("/writers/:id", writersBiographyHandler())
+		// api.GET("/articles")
+		// api.GET("/search")
+		// api.GET("favorites")
+		// api.GET("/me")
 	}
 }

@@ -1,7 +1,7 @@
 package model
 
 type WriterBiography struct {
-	ID          int64
+	ID          int
 	Name        string
 	PortraitURL string
 	Lifespan    string
