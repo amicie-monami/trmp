@@ -43,8 +43,6 @@ func createTables(db *sql.DB) error {
 		return err
 	}
 
-	// queries := strings.Split(string(sqlBytes), ";")
-
 	if _, err := db.Exec(string(sqlBytes)); err != nil {
 		return err
 	}
