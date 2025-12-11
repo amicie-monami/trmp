@@ -15,7 +15,7 @@ func SetupRoutes(r gin.IRouter, db *sql.DB) {
 		api.GET("/writers/:id", writersBiographyHandler())
 		api.GET("/articles", articlesHandler())
 		api.GET("/articles/:id", articleHandler())
-		// api.GET("/search")
+		api.GET("/search", searchHandler())
 		// api.GET("favorites")
 		// api.GET("/me")
 	}
