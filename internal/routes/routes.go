@@ -15,7 +15,7 @@ func SetupRoutes(r gin.IRouter, db *sql.DB) {
 	{
 		auth := api.Group("/auth")
 		{
-			auth.POST("/login")
+			auth.POST("/login", authHandler.Login())
 			auth.POST("/register", authHandler.Register())
 		}
 
