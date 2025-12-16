@@ -6,6 +6,7 @@ type ArticleCard struct {
 	Title       string   `json:"title"`
 	Tags        []string `json:"tags"`
 	Description string   `json:"description"`
+	IsFavorite  bool     `json:"is_favorite"`
 }
 
 type Article struct {
@@ -15,4 +16,5 @@ type Article struct {
 	Tags        []string `json:"tags"`
 	Description string   `json:"description"`
 	Content     string   `json:"content"`
+	IsFavorite  bool     `json:"is_favorite"`
 }

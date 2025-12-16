@@ -24,13 +24,9 @@ func NewWritersHandler(db *sql.DB) *WritersHandler {
 
 func (h *WritersHandler) GetWriters() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		log.Println("Getting all writers...")
+		userID, _ := GetUserIDFromContext(ctx)
 
-		var writers []model.WriterCard
-		var err error
-
-		writers, err = h.writerRepo.GetAll()
-
+		writers, err := h.writerRepo.GetAllWithFavorites(userID)
 		if err != nil {
 			log.Printf("Error getting writers: %v", err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -39,14 +35,7 @@ func (h *WritersHandler) GetWriters() gin.HandlerFunc {
 			return
 		}
 
-		// Если нет писателей
-		if len(writers) == 0 {
-			ctx.JSON(http.StatusOK, []model.WriterCard{})
-			return
-		}
-
 		ctx.JSON(http.StatusOK, writers)
-		log.Printf("Returned %d writers", len(writers))
 	}
 }
 
@@ -63,7 +52,19 @@ func (h *WritersHandler) GetWriterBiography() gin.HandlerFunc {
 			return
 		}
 
-		writer, err := h.writerRepo.GetByID(id)
+		var writer *model.WriterBiography
+		userID, hasUser := GetUserIDFromContext(ctx)
+		if hasUser {
+			// С информацией об избранном для этого пользователя
+			writer, err = h.writerRepo.GetByIDWithFavorite(id, userID)
+		} else {
+			// Без информации об избранном
+			writer, err = h.writerRepo.GetByID(id)
+			if writer != nil {
+				writer.IsFavorite = false
+			}
+		}
+
 		if err != nil {
 			log.Printf("Error getting writer: %v", err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -80,7 +81,7 @@ func (h *WritersHandler) GetWriterBiography() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusOK, writer)
-		log.Printf("Returned biography for writer: %s", writer.Name)
+		log.Printf("Returned biography for writer: %s (ID: %d)", writer.Name, writer.ID)
 	}
 }
 

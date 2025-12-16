@@ -96,3 +96,83 @@ func (r *ArticleRepository) GetByID(id int) (*model.Article, error) {
 
 	return article, nil
 }
+
+// GetAllWithFavorites возвращает статьи с информацией об избранном
+func (r *ArticleRepository) GetAllWithFavorites(userID int) ([]model.ArticleCard, error) {
+	query := `
+		SELECT a.id, a.cover_url, a.title, a.tags, a.description,
+		       CASE WHEN fa.user_id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
+		FROM articles a
+		LEFT JOIN favorite_articles fa ON a.id = fa.article_id AND fa.user_id = ?
+		ORDER BY a.id DESC
+	`
+
+	rows, err := r.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var articles []model.ArticleCard
+	for rows.Next() {
+		var article model.ArticleCard
+		var tagsString string
+		var favorite int
+
+		err := rows.Scan(
+			&article.ID,
+			&article.CoverURL,
+			&article.Title,
+			&tagsString,
+			&article.Description,
+			&favorite,
+		)
+		if err != nil {
+			continue
+		}
+
+		article.Tags = model.ParseTags(tagsString)
+		article.IsFavorite = (favorite == 1)
+		articles = append(articles, article)
+	}
+
+	return articles, nil
+}
+
+func (r *ArticleRepository) GetByIDWithFavorite(id, userID int) (*model.Article, error) {
+	query := `
+		SELECT a.id, a.cover_url, a.title, a.tags, a.description, a.content,
+		       CASE WHEN fa.user_id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
+		FROM articles a
+		LEFT JOIN favorite_articles fa ON a.id = fa.article_id AND fa.user_id = ?
+		WHERE a.id = ?
+	`
+
+	row := r.db.QueryRow(query, userID, id)
+
+	article := &model.Article{}
+	var tagsString string
+	var favorite int
+
+	err := row.Scan(
+		&article.ID,
+		&article.CoverURL,
+		&article.Title,
+		&tagsString,
+		&article.Description,
+		&article.Content,
+		&favorite, // Сканируем is_favorite
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	article.Tags = model.ParseTags(tagsString)
+	article.IsFavorite = (favorite == 1) // Устанавливаем поле
+	return article, nil
+}

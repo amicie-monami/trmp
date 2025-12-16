@@ -284,3 +284,91 @@ func (r *WriterRepository) ToggleFavorite(id int) error {
 	_, err := r.db.Exec(query, id)
 	return err
 }
+
+// GetAllWithFavorites возвращает список всех писателей с информацией об избранном для конкретного пользователя
+func (r *WriterRepository) GetAllWithFavorites(userID int) ([]model.WriterCard, error) {
+	query := `
+		SELECT w.id, w.name, w.portrait_url, w.tags,
+		       CASE WHEN fw.id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
+		FROM writers w
+		LEFT JOIN favorite_writers fw ON w.id = fw.writer_id AND fw.user_id = ?
+		ORDER BY w.name
+	`
+
+	rows, err := r.db.Query(query, userID)
+	if err != nil {
+		log.Printf("Error querying writers with favorites: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var writers []model.WriterCard
+	for rows.Next() {
+		var writer model.WriterCard
+		var tagsString string
+		var favorite int
+
+		err := rows.Scan(
+			&writer.ID,
+			&writer.Name,
+			&writer.PortraitURL,
+			&tagsString,
+			&favorite,
+		)
+		if err != nil {
+			log.Printf("Error scanning writer row: %v", err)
+			continue
+		}
+
+		writer.Tags = model.ParseTags(tagsString)
+		writer.IsFavorite = (favorite == 1)
+		writers = append(writers, writer)
+	}
+
+	return writers, nil
+}
+
+// GetByIDWithFavorite возвращает писателя с информацией об избранном для конкретного пользователя
+func (r *WriterRepository) GetByIDWithFavorite(id, userID int) (*model.WriterBiography, error) {
+	query := `
+		SELECT w.id, w.name, w.portrait_url, w.tags, w.lifespan, 
+		       w.country, w.occupation, w.content,
+		       CASE WHEN fw.id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
+		FROM writers w
+		LEFT JOIN favorite_writers fw ON w.id = fw.writer_id AND fw.user_id = ?
+		WHERE w.id = ?
+	`
+
+	row := r.db.QueryRow(query, userID, id)
+
+	writer := &model.WriterBiography{}
+	var tagsString string
+	var favorite int
+
+	err := row.Scan(
+		&writer.ID,
+		&writer.Name,
+		&writer.PortraitURL,
+		&tagsString,
+		&writer.Lifespan,
+		&writer.Country,
+		&writer.Occupation,
+		&writer.Content,
+		&favorite,
+	)
+
+	if err == sql.ErrNoRows {
+		log.Printf("Writer not found with ID: %d", id)
+		return nil, nil
+	}
+
+	if err != nil {
+		log.Printf("Error scanning writer row: %v", err)
+		return nil, err
+	}
+
+	writer.Tags = model.ParseTags(tagsString)
+	writer.IsFavorite = (favorite == 1)
+
+	return writer, nil
+}
