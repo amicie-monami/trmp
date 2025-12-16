@@ -38,14 +38,14 @@ func createTables(db *sql.DB) error {
 		}
 	}
 
-	// sqlBytes, err = os.ReadFile("test_data.sql")
-	// if err != nil {
-	// 	return err
-	// }
+	sqlBytes, err = os.ReadFile("testdata.sql")
+	if err != nil {
+		return err
+	}
 
-	// if _, err := db.Exec(string(sqlBytes)); err != nil {
-	// 	return err
-	// }
+	if _, err := db.Exec(string(sqlBytes)); err != nil {
+		return err
+	}
 
 	return nil
 }

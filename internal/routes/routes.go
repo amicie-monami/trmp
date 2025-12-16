@@ -10,6 +10,7 @@ func SetupRoutes(r gin.IRouter, db *sql.DB) {
 	r.Use()
 
 	authHandler := NewAuthHandler(db)
+	writersHandler := NewWritersHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -19,13 +20,31 @@ func SetupRoutes(r gin.IRouter, db *sql.DB) {
 			auth.POST("/register", authHandler.Register())
 		}
 
-		// api.GET("/writers", writersHandler())
-		// api.GET("/writers/:id", writersBiographyHandler())
-		// api.GET("/articles", articlesHandler())
-		// api.GET("/articles/:id", articleHandler())
-		// api.GET("/search", searchHandler())
+		writers := api.Group("/writers")
+		{
+			writers.GET("", writersHandler.GetWriters())
+			writers.GET("/:id/bio", writersHandler.GetWriterBiography())
+		}
 
-		// api.GET("favorites")
-		// api.GET("/me")
+		// articles := api.Group("/articles")
+		// {
+		// 	articles.GET("", articlesHandler())
+		// 	articles.GET("/:id", articleHandler())
+		// }
+
+		// search := api.Group("/search")
+		// {
+		// 	search.GET("/search", searchHandler())
+		// }
+
+		// favorites := api.Group("/favorites")
+		// {
+		// 	favorites.GET("favorites")
+		// }
+
+		// me := api.Group("me")
+		// {
+		// 	me.GET("/me")
+		// }
 	}
 }
