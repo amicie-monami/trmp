@@ -19,31 +19,16 @@ CREATE TABLE IF NOT EXISTS writers (
 
 CREATE INDEX IF NOT EXISTS idx_writers_name ON writers(name);
 
--- -- писатели
--- CREATE TABLE IF NOT EXISTS writers (
---     id INTEGER PRIMARY KEY AUTOINCREMENT,
---     name TEXT NOT NULL,
---     portrait_url TEXT,
---     tag TEXT,
---     lifespan TEXT,
---     country TEXT,
---     occupation TEXT,
---     content TEXT,
---     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
--- );
-
--- -- статьи
--- CREATE TABLE IF NOT EXISTS articles (
---     id INTEGER PRIMARY KEY AUTOINCREMENT,
---     title TEXT NOT NULL,
---     tag TEXT,
---     description TEXT,
---     cover_url TEXT,
---     content TEXT,
---     writer_id INTEGER,
---     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
---     FOREIGN KEY (writer_id) REFERENCES writers (id) ON DELETE SET NULL
--- );
+-- статьи
+CREATE TABLE IF NOT EXISTS articles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cover_url TEXT,
+    title TEXT NOT NULL,
+    tags TEXT,
+    description TEXT,
+    is_favorite,
+    content TEXT
+);
 
 -- -- избранные писатели
 -- CREATE TABLE IF NOT EXISTS favorite_writers (

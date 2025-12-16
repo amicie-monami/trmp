@@ -1,47 +1,82 @@
 package routes
 
 import (
+	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
+	"trmp/internal/database/repository"
 	"trmp/internal/model"
 
 	"github.com/gin-gonic/gin"
 )
 
-func articlesHandler() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		articles := []model.Article{
-			{
-				ID: 1, Title: "Заголовок", Description: "Описание",
-				CoverURL: "test.url", IsFavorite: false, Content: "Текст",
-			},
-			{
-				ID: 2, Title: "Заголовок", Description: "Описание",
-				CoverURL: "test.url", IsFavorite: false, Content: "Текст",
-			},
-		}
+type ArticlesHandler struct {
+	articleRepo *repository.ArticleRepository
+}
 
-		ctx.JSON(http.StatusOK, articles)
-		return
+func NewArticlesHandler(db *sql.DB) *ArticlesHandler {
+	return &ArticlesHandler{
+		articleRepo: repository.NewArticleRepository(db),
 	}
 }
 
-func articleHandler() gin.HandlerFunc {
+// GetArticles возвращает список всех статей (карточки)
+func (h *ArticlesHandler) GetArticles() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, err := strconv.Atoi(ctx.Param("id"))
+		log.Println("Getting all articles...")
+
+		articles, err := h.articleRepo.GetAll()
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, map[string]any{
+			log.Printf("Error getting articles: %v", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Ошибка при получении списка статей",
+			})
+			return
+		}
+
+		// Если массив пустой, возвращаем пустой массив
+		if articles == nil {
+			ctx.JSON(http.StatusOK, []model.ArticleCard{})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, articles)
+		log.Printf("Successfully returned %d articles", len(articles))
+	}
+}
+
+// GetArticle возвращает полную статью по ID
+func (h *ArticlesHandler) GetArticle() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		idStr := ctx.Param("id")
+		log.Printf("Getting article with ID: %s", idStr)
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error": "ID must be a number",
 			})
 			return
 		}
 
-		articles := model.Article{
-			ID: id, Title: "Заголовок", Description: "Описание",
-			CoverURL: "test.url", IsFavorite: false, Content: "Текст",
+		article, err := h.articleRepo.GetByID(id)
+		if err != nil {
+			log.Printf("Error getting article: %v", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Ошибка при получении статьи",
+			})
+			return
 		}
 
-		ctx.JSON(http.StatusOK, articles)
-		return
+		if article == nil {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"error": "Статья не найдена",
+			})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, article)
+		log.Printf("Successfully returned article: %s (ID: %d)", article.Title, article.ID)
 	}
 }
