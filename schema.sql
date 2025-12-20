@@ -54,3 +54,19 @@ CREATE INDEX IF NOT EXISTS idx_favorite_writers_user ON favorite_writers(user_id
 CREATE INDEX IF NOT EXISTS idx_favorite_writers_writer ON favorite_writers(writer_id);
 CREATE INDEX IF NOT EXISTS idx_favorite_articles_user ON favorite_articles(user_id);
 CREATE INDEX IF NOT EXISTS idx_favorite_articles_article ON favorite_articles(article_id);
+
+
+CREATE TABLE IF NOT EXISTS reading_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    item_type TEXT NOT NULL, -- 'writer' или 'article'
+    item_id INTEGER NOT NULL,
+    progress REAL DEFAULT 0.0, -- от 0.0 до 1.0
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(user_id, item_type, item_id)
+);
+
+-- Индексы для быстрого поиска
+CREATE INDEX IF NOT EXISTS idx_reading_progress_user ON reading_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_reading_progress_item ON reading_progress(item_type, item_id);

@@ -24,4 +24,6 @@ COPY --from=builder /app/*.sql ./
 
 EXPOSE 6580
 
+RUN rm writers.db
+
 CMD ["./main"]

@@ -15,6 +15,7 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 	articlesHandler := NewArticlesHandler(db)
 	favoritesHandler := NewFavoritesHandler(db)
 	searchHandler := NewSearchHandler(db)
+	progressHandler := NewProgressHandler(db)
 
 	api := router.Group("/api")
 	{
@@ -59,24 +60,17 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 			search.GET("/writers", searchHandler.SearchWriters())   // ?q=текст&tags=тег1,тег2
 			search.GET("/tags", searchHandler.GetTags())            // все уникальные теги
 		}
+
+		// User routes (защищенные)
+		user := api.Group("/user")
+		user.Use(AuthMiddleware())
+		{
+			user.GET("/reading-progress", progressHandler.GetReadingProgress())
+			user.POST("/reading-progress", progressHandler.SaveReadingProgress())
+			user.POST("/reading-progress/bulk", progressHandler.BulkSaveReadingProgress())
+		}
 	}
 
 	log.Println("Routes setup complete")
 }
 
-// 		// search := api.Group("/search")
-// 		// {
-// 		// 	search.GET("/search", searchHandler())
-// 		// }
-
-// 		// favorites := api.Group("/favorites")
-// 		// {
-// 		// 	favorites.GET("favorites")
-// 		// }
-
-// 		// me := api.Group("me")
-// 		// {
-// 		// 	me.GET("/me")
-// 		// }
-// 	}
-// }
