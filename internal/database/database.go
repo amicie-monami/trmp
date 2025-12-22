@@ -47,5 +47,14 @@ func createTables(db *sql.DB) error {
 		return err
 	}
 
+	sqlBytes, err = os.ReadFile("content.sql")
+	if err != nil {
+		return err
+	}
+
+	if _, err := db.Exec(string(sqlBytes)); err != nil {
+		return err
+	}
+
 	return nil
 }
